@@ -11,3 +11,4 @@ data = BeautifulSoup(r.text, 'html.parser')
 for meta in data.find_all('meta'):
     if meta.get('name') == 'twitter:description':
         print(meta.get('content'))
+        break
