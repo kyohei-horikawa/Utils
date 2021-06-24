@@ -6,6 +6,7 @@ import subprocess
 from distutils.util import strtobool
 
 token = os.environ['QIITA_TOKEN']
+editor = os.environ['QIITA_EDITOR']
 
 
 def post(file):
@@ -74,7 +75,13 @@ id=
 
 
 def show():
-    print()
+    print('token:', token)
+    print('editor:', editor)
+    print('\n')
+    print("If you haven't set your token or editor, \
+you can set like this in config.fish")
+    print('set -Ux QIITA_TOKEN xxxxxxxx')
+    print('set -Ux QIITA_EDITOR code')
 
 
 if __name__ == '__main__':
