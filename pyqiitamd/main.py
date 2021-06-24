@@ -16,11 +16,11 @@ def post(file):
     item = {}
     with open(file, 'r') as f:
         lines = f.readlines()
-        header = lines[0:7]
+        header = lines[0:7]  # タグは1-7行目と決めうち(要改善)
         lines.append('\n'+'**'+path + '/'+file+'**')
         body = ''.join(lines[8:len(lines)])
 
-        # タグ情報をパース
+        # タグ情報をパース(もっと賢くやりたい，要改善)
         for line in header:
             result = pattern.match(line)
             if result:
@@ -48,7 +48,8 @@ def post(file):
         res = requests.post(url, headers=headers, json=item)
         # タグを更新
         write_tag(file, res.json()['id'])
-    print((res.json()['url']))
+    print(res.json()['url'])
+    subprocess.call(['open', res.json()['url']])
 
 
 def write_tag(file, id):
