@@ -11,6 +11,43 @@ editor = os.environ['QIITA_EDITOR']
 
 def post(file):
     url = 'https://qiita.com/api/v2/items'
+    headers = {'Authorization': 'Bearer {}'.format(token)}
+
+    item = parse(file)
+
+    # タグにidがあれば，patchで記事を更新
+    # なければ，postで新規投稿
+    if item['id']:
+        url = url+'/'+item['id']
+        res = requests.patch(url, headers=headers, json=item)
+    else:
+        res = requests.post(url, headers=headers, json=item)
+        # タグを更新
+        write_id(file, res.json()['id'])
+    print(res.json()['url'])
+    subprocess.call(['open', res.json()['url']])
+
+
+def team(file):
+    url = 'https://nishitani.qiita.com/api/v2/items'
+    headers = {'Authorization': 'Bearer {}'.format(token)}
+
+    item = parse(file)
+
+    # タグにidがあれば，patchで記事を更新
+    # なければ，postで新規投稿
+    if item['id']:
+        url = url+'/'+item['id']
+        res = requests.patch(url, headers=headers, json=item)
+    else:
+        res = requests.post(url, headers=headers, json=item)
+        # タグを更新
+        write_id(file, res.json()['id'])
+    print(res.json())
+    subprocess.call(['open', res.json()['url']])
+
+
+def parse(file):
     pattern = re.compile('(.*)=(.*)')
     path = os.getcwd()
     item = {}
@@ -37,22 +74,10 @@ def post(file):
                     item[result.group(1)] = result.group(2)
         item['body'] = body
 
-    headers = {'Authorization': 'Bearer {}'.format(token)}
-
-    # タグにidがあれば，patchで記事を更新
-    # なければ，postで新規投稿
-    if item['id']:
-        url = url+'/'+item['id']
-        res = requests.patch(url, headers=headers, json=item)
-    else:
-        res = requests.post(url, headers=headers, json=item)
-        # タグを更新
-        write_tag(file, res.json()['id'])
-    print(res.json()['url'])
-    subprocess.call(['open', res.json()['url']])
+        return item
 
 
-def write_tag(file, id):
+def write_id(file, id):
     with open(file, 'r') as f:
         lines = f.readlines()
     lines[5] = 'id='+str(id)+'\n'
@@ -88,7 +113,7 @@ you can set like this in config.fish")
 if __name__ == '__main__':
     fire.Fire({
         'post': post,
+        'team': team,
         'template': template,
         'show': show,
-        'test': write_tag
     })
