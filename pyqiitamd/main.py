@@ -7,18 +7,19 @@ from distutils.util import strtobool
 
 token = os.environ['QIITA_TOKEN']
 editor = os.environ['QIITA_EDITOR']
+team_url = os.environ['QIITA_TEAM_URL']
 
 
 def post(file):
     url = 'https://qiita.com/api/v2/items'
-    headers = {'Authorization': 'Bearer {}'.format(token)}
+    headers = {'Authorization': f'Bearer {token}'}
 
     item = parse(file)
 
     # タグにidがあれば，patchで記事を更新
     # なければ，postで新規投稿
     if item['id']:
-        url = url+'/'+item['id']
+        url = f"{url}/{item['id']}"
         res = requests.patch(url, headers=headers, json=item)
     else:
         res = requests.post(url, headers=headers, json=item)
@@ -29,21 +30,21 @@ def post(file):
 
 
 def team(file):
-    url = 'https://nishitani.qiita.com/api/v2/items'
-    headers = {'Authorization': 'Bearer {}'.format(token)}
+    url = f'https://{team_url}.qiita.com/api/v2/items'
+    headers = {'Authorization': f'Bearer {token}'}
 
     item = parse(file)
 
     # タグにidがあれば，patchで記事を更新
     # なければ，postで新規投稿
     if item['id']:
-        url = url+'/'+item['id']
+        url = f"{url}/{item['id']}"
         res = requests.patch(url, headers=headers, json=item)
     else:
         res = requests.post(url, headers=headers, json=item)
         # タグを更新
         write_id(file, res.json()['id'])
-    print(res.json())
+    print(res.json()['url'])
     subprocess.call(['open', res.json()['url']])
 
 
@@ -54,7 +55,7 @@ def parse(file):
     with open(file, 'r') as f:
         lines = f.readlines()
         header = lines[0:7]  # タグは1-7行目と決めうち(要改善)
-        lines.append('\n'+'**'+path + '/'+file+'**')
+        lines.append(f"\n**{path}/{file}**")
         body = ''.join(lines[8:len(lines)])
 
         # タグ情報をパース(もっと賢くやりたい，要改善)
@@ -80,7 +81,7 @@ def parse(file):
 def write_id(file, id):
     with open(file, 'r') as f:
         lines = f.readlines()
-    lines[5] = 'id='+str(id)+'\n'
+    lines[5] = f"id={str(id)}\n"
 
     with open(file, 'w') as f:
         f.writelines(lines)
@@ -103,11 +104,13 @@ id=
 def show():
     print('token:', token)
     print('editor:', editor)
+    print('team_url:', team_url)
     print('\n')
     print("If you haven't set your token or editor, \
 you can set like this in config.fish")
     print('set -Ux QIITA_TOKEN xxxxxxxx')
     print('set -Ux QIITA_EDITOR code')
+    print('set -Ux QIITA_TEAM_URL xxxxxxxx')
 
 
 if __name__ == '__main__':
