@@ -1,9 +1,8 @@
-import fire
+from parse import parse
 import os
 import requests
-import re
 import subprocess
-from distutils.util import strtobool
+import fire
 
 token = os.environ['QIITA_TOKEN']
 editor = os.environ['QIITA_EDITOR']
@@ -46,36 +45,6 @@ def team(file):
         write_id(file, res.json()['id'])
     print(res.json()['url'])
     subprocess.call(['open', res.json()['url']])
-
-
-def parse(file):
-    pattern = re.compile('(.*)=(.*)')
-    path = os.getcwd()
-    item = {}
-    with open(file, 'r') as f:
-        lines = f.readlines()
-        header = lines[0:7]  # タグは1-7行目と決めうち(要改善)
-        lines.append(f"\n**{path}/{file}**")
-        body = ''.join(lines[8:len(lines)])
-
-        # タグ情報をパース(もっと賢くやりたい，要改善)
-        for line in header:
-            result = pattern.match(line)
-            if result:
-                if result.group(1) == 'tags':
-                    item['tags'] = []
-                    for tag in result.group(2).split(','):
-                        item['tags'].append({'name': tag})
-                elif result.group(1) == "private" or result.group(1) == "tweet":
-                    if strtobool(result.group(2)):
-                        item[result.group(1)] = True
-                    else:
-                        item[result.group(1)] = False
-                else:
-                    item[result.group(1)] = result.group(2)
-        item['body'] = body
-
-        return item
 
 
 def write_id(file, id):
